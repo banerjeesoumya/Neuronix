@@ -27,7 +27,7 @@ const tagSchema = new mongoose.Schema ({
     }
 })
 
-const contentTypes = ['image', 'video', 'article', 'audio'];
+const contentTypes = ['document', 'tweet', 'youtube', 'audio'];
 
 const contentSchema = new mongoose.Schema({
     link: {
@@ -45,7 +45,7 @@ const contentSchema = new mongoose.Schema({
     },
     tags: [{
         type : mongoose.Types.ObjectId, 
-        ref: 'Tag',
+        ref: 'Tags',
         require: true
     }],
     userId: {
