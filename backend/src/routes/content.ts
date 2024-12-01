@@ -2,7 +2,8 @@ import express from "express"
 import  jwt from "jsonwebtoken"
 import dotenv from "dotenv"
 import { authMiddleware } from "../middleware";
-import { Contents, Tags } from "../models";
+import { Contents, Links, Tags } from "../models";
+import { random } from "../utils";
 
 dotenv.config()
 
@@ -67,6 +68,78 @@ contentRouter.get("/myContent", authMiddleware, async (req, res) => {
     } catch(e) {
         return res.status(500).json({
             message: "Server error",
+            // @ts-ignore
+            error: e.message
+        })
+    }
+})
+
+// @ts-ignore
+contentRouter.post("/share", authMiddleware, async (req, res) => {
+    const share = req.body.share;
+    try {
+        if (share) {
+            const link = random(10);
+            const existingLink = await Links.findOne({
+                // @ts-ignore
+                userId: req.userId
+            });
+            
+            if (existingLink) {
+                return res.json({
+                    message: "/share/" + existingLink.hash
+                })
+            } else {
+                await Links.create({
+                    // @ts-ignore
+                    userId: req.userId,
+                    hash: link
+                })
+                return res.status(200).json({
+                    message: "/share/" + link
+                })
+            }
+
+        } else {
+            await Links.deleteOne({
+                // @ts-ignore
+                userId: req.userId
+            })
+
+            return res.status(401).json({
+                message: "Removed link"
+            })
+        }
+    } catch(e) {
+        return res.status(500).json({
+            message: "Server error"
+        })
+    }
+})
+
+// @ts-ignore
+contentRouter.get("/brain/:shareLink", async(req, res) => {
+    const link = req.params.shareLink;
+    try {
+        const existLink = await Links.findOne({
+            hash: link
+        })
+        if (!existLink) {
+            return res.status(400).json({
+                message: "Link is broken"
+            })
+        } else {
+            const content = await Contents.findOne({
+                userId: existLink.userId
+            }).populate("userId", "username");
+            
+            return res.status(200).json({
+                mesage: content
+            })
+        }
+    } catch (e) {
+        return res.status(500).json({
+            message: "Internal Server Error",
             // @ts-ignore
             error: e.message
         })

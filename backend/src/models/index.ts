@@ -60,7 +60,8 @@ const linkSchema = new mongoose.Schema({
     },
     userId: {
         type: mongoose.Types.ObjectId,
-        ref: 'Users'
+        ref: 'Users',
+        require: true
     }
 })
 
